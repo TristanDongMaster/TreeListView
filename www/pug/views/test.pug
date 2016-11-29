@@ -1,0 +1,16 @@
+extends ../layout/layout.pug
+block title
+	title test
+block pageStyle
+	link(href=`${assetsPath}/css/test.css` rel='stylesheet' type='text/css')
+
+block content 
+	#test Dom Tree
+	.tree-ct
+
+block pageScript
+	//- script(src=`${publicPath}/grcredit-h5/v1/swipe.min.js` type='text/javascript')
+	if isDev
+		script(src=`/static/test.bundle.js` type='text/javascript')
+	else
+		script(src=`${assetsPath}/js/test.bundle.js` type='text/javascript') 

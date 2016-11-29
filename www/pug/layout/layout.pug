@@ -1,0 +1,29 @@
+doctype html
+html(lang='en')
+	head
+		block head
+			meta(http-equiv='x-dns-prefetch-control' content='on')
+			meta(http-equiv='content-type' content='text/html; charset=utf-8') 
+			meta(name='keywords' content='keywords')
+			meta(name='description' content='description')
+			meta(name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0')
+			meta(name='msapplication-tap-highlight' content='no')
+			meta(name='yes' content='apple-mobile-web-app-capable')
+			meta(name='black' content='apple-mobile-web-app-status-bar-style')
+			meta(name='telephone=no' content='format-detection')
+			meta(http-equiv="Pragma" content="no-cache")
+			meta(http-equiv="Cache-control" content="no-cache,no-store,must-revalidate")
+			meta(http-equiv="Expires" content="0")
+			block title
+				title Tree
+			block pageStyle
+			
+	body
+		block content
+		script(src=`${publicPath}/zepto.min.js` type='text/javascript')
+		if isDev	
+			script(src=`/static/commons.js` type='text/javascript')
+		else
+			script(src=`${assetsPath}/js/commons.js` type='text/javascript')
+		block pageScript
+
