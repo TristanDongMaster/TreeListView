@@ -88,150 +88,143 @@ var data = {
 }
 
 
-// 初始化选择结果
-// 0：未选择 1：选择了部分 2：全部选中
-export function isAllSelected(data) {
-	var isSelected = 0
-	if (data.sub != undefined) {
-		let sub = data.sub
-		var checkedCount = 0
-		for (let length = sub.length, i = 0; i < length; i++) {
-			var subIsSelected = isAllSelected(sub[i]) 
-			if (subIsSelected == 2 || subIsSelected == 1) {
-				checkedCount++
+$.fn.extend({
+	generateTree: function(dataArray) {
+		// 生成tree view DOM
+		function _generateTreeByData(dataArray) {
+			var str = ''
+			for (let length = dataArray.length, i = 0; i < length; i++) {
+				let data = dataArray[i]
+				if (typeof data == "object") {
+					let node = ''
+					let checkedFlag = _isAllSelected(data)
+					let isChecked = checkedFlag == 0 ? '' : checkedFlag == 1 ? 'checked-one' : 'checked'
+					if (data.sub != undefined) {
+						node = '<div class="node"><div  class="collapse icon-toggle"></div>'
+					}
+					let index = 'title' + data.id
+					let name = data.name
+					let titleClass = "title " + isChecked
+					let text = `<div class="node"><span class="${titleClass}" id="${data.id}" >${name}</span></div>`
+					str += node + text
+					if (data.sub != undefined) {
+						let subLine = '<div class="sub line">'
+						str += subLine
+						let subItem = data.sub
+						str += _generateTreeByData(subItem)
+						str += '</div>'
+						str += '</div>'
+					}
+				}
 			}
+			return str
 		}
-		if(checkedCount==0){
-			isSelected = 0
-		}else if(checkedCount<sub.length){
-			isSelected = 1
-		}else{
-			isSelected = 2
-		}
-	} else if (data.isSelected != true ) {
-		isSelected = 0
-	} else if (data.isSelected == true ) {
-		isSelected = 2
-	}
-	return isSelected
-}
 
-// 生成tree view DOM
-export function generateTreeByData(dataArray) {
-	var str = ''
-	for (let length = dataArray.length, i = 0; i < length; i++) {
-		let data = dataArray[i]
-		if (typeof data == "object") {
-			let node = ''
-			let checkedFlag = isAllSelected(data)
-			let isChecked = checkedFlag == 0 ?'': checkedFlag==1?'checked-one' : 'checked'
+		function _isAllSelected(data) {
+			var isSelected = 0
 			if (data.sub != undefined) {
-				node = '<div class="node"><div  class="collapse icon-toggle"></div>'
+				let sub = data.sub
+				var checkedCount = 0
+				for (let length = sub.length, i = 0; i < length; i++) {
+					var subIsSelected = _isAllSelected(sub[i])
+					if (subIsSelected == 2 || subIsSelected == 1) {
+						checkedCount++
+					}
+				}
+				if (checkedCount == 0) {
+					isSelected = 0
+				} else if (checkedCount < sub.length) {
+					isSelected = 1
+				} else {
+					isSelected = 2
+				}
+			} else if (data.isSelected != true) {
+				isSelected = 0
+			} else if (data.isSelected == true) {
+				isSelected = 2
 			}
-			let index = 'title' + data.id
-			let name = data.name
-			let titleClass = "title " + isChecked
-			let text = `<div class="node"><span class="${titleClass}" id="${data.id}" >${name}</span></div>`
-			str += node + text
-			if (data.sub != undefined) {
-				let subLine = '<div class="sub line">'
-				str += subLine
-				let subItem = data.sub
-				str += generateTreeByData(subItem)
-				str += '</div>'
-				str += '</div>'
+			return isSelected
+		}
+		// 设置父节点选择状态
+		function _selectParent($target, isChecked) {
+			var isCheckedParent = true
+			var checkedCount = 0
+			var $sub = $target.closest('.sub')
+			if ($sub.length == 0) {
+				return
+			}
+			var $titles = $sub.find('.title')
+			if ($titles.length == 0) {
+				return
+			}
+			//兄弟节点
+			$titles.each(function(index, item) {
+				if ($(item).hasClass('checked') == false) {
+					isCheckedParent = false
+				} else {
+					checkedCount++
+				}
+			})
+			isCheckedParent = isCheckedParent && isChecked
+			var $nodeParent = $sub.siblings('.node')
+			if ($nodeParent.length == 0) {
+				return
+			}
+			let $title = $($nodeParent.find('.title')[0])
+			if (isCheckedParent) {
+				$title.addClass('checked')
+				$title.removeClass('checked-one')
+			} else {
+				if (checkedCount > 0) {
+					$title.removeClass('checked')
+					$title.addClass('checked-one')
+				} else {
+					$title.removeClass('checked')
+					$title.removeClass('checked-one')
+				}
+			}
+			if ($title && $title.closest('.sub')) {
+				_selectParent($title, isCheckedParent)
 			}
 		}
-	}
-	return str
-}
+		// 设置子节点选择状态
+		function _selectItem($target, isChecked) {
+			if (isChecked) {
+				$target.addClass('checked')
+				$target.removeClass('checked-one')
+			} else {
+				$target.removeClass('checked')
+			}
+			var $sub = $target.closest('.node').next('.sub')
+			if ($sub) {
+				var $title = $sub.find('.title')
+				$title.each(function(index, item) {
+					_selectItem($(item), isChecked)
+				})
+			}
+		}
 
-// 设置子节点选择状态
-function selectItem($target, isChecked) {
-	if (isChecked) {
-		$target.addClass('checked')
-		$target.removeClass('checked-one')
-	} else {
-		$target.removeClass('checked')
-	}
-	var $sub = $target.closest('.node').next('.sub')
-	if ($sub) {
-		var $title = $sub.find('.title')
-		$title.each(function(index, item) {
-			selectItem($(item), isChecked)
+		this.append(_generateTreeByData(dataArray))
+		
+		this.on('click', '.title', function(event) {
+			var $this = $(this)
+			var isChecked = $this.hasClass('checked')
+			_selectItem($this, !isChecked)
+			_selectParent($this, !isChecked)
 		})
+		this.on('click', '.icon-toggle', function(event) {
+			var $this = $(this)
+			var isChecked = $this.hasClass('collapse') || $this.hasClass('expand')
+			if (isChecked) {
+				$this.toggleClass('collapse')
+				$this.toggleClass('expand')
+				$($this.closest('.node').find('.sub')[0]).toggleClass('toggle-hide')
+			}
+		})
+		return this
 	}
-}
-// 设置父节点选择状态
-function selectParent($target, isChecked) {
-	var isCheckedParent = true
-	var checkedCount = 0
-	var $sub = $target.closest('.sub')
-	if ($sub.length == 0) {
-		return
-	}
-	var $titles = $sub.find('.title')
-	if ($titles.length == 0) {
-		return
-	}
-	//兄弟节点
-	$titles.each(function(index, item) {
-		if ($(item).hasClass('checked') == false) {
-			isCheckedParent = false
-		}else{
-			checkedCount++
-		}
-	})
-	isCheckedParent = isCheckedParent && isChecked
-	var $nodeParent = $sub.siblings('.node')
-	if ($nodeParent.length == 0) {
-		return
-	}
-	let $title = $($nodeParent.find('.title')[0])
-	if (isCheckedParent) {
-		$title.addClass('checked')
-		$title.removeClass('checked-one')
-	} else {
-		if(checkedCount>0){
-			$title.removeClass('checked')
-			$title.addClass('checked-one')
-		}else{
-			$title.removeClass('checked')
-			$title.removeClass('checked-one')
-		}
-	}
-	if ($title && $title.closest('.sub')) {
-		selectParent($title, isCheckedParent)
-	}
-}
+});
 
-// 选择，伸展事件
-function triggerChecked() {
-	$(".tree-ct").on('click', '.title', function(event) {
-		var $this = $(this)
-		var isChecked = $this.hasClass('checked')
-		if (isChecked) {
-			selectItem($this, !isChecked)
-			selectParent($this, !isChecked)
-		} else {
-			selectItem($this, !isChecked)
-			selectParent($this, !isChecked)
-		}
-	})
-	$(".tree-ct").on('click', '.icon-toggle', function(event) {
-		var $this = $(this)
-		var isChecked = $this.hasClass('collapse') || $this.hasClass('expand')
-		if (isChecked) {
-			$this.toggleClass('collapse')
-			$this.toggleClass('expand')
-			$($this.closest('.node').find('.sub')[0]).toggleClass('toggle-hide')
-		}
-	})
-}
-
-
-Zepto(function($) {
-	var str = generateTreeByData(data.parent);
-	$(".tree-ct").append(str)
-	triggerChecked()
+jQuery(function($) {
+	$(".tree-ct").generateTree(data.parent);
 });
