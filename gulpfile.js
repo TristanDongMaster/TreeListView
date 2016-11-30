@@ -76,7 +76,7 @@ gulp.task('html', function() {
             errorHandler: errrHandler
         }))
         .pipe(pug({
-            pretty: isDev ? true : false,
+            pretty: true,//isDev ? true : false,
             locals: {
                 isDev: isDev,
                 devVersion: dev_version,
@@ -118,6 +118,7 @@ gulp.task('build', function() {
         clearInterval(interval)
         clearTimeout(timeout)
     }, 10000)
+     return
     var interval = setInterval(function() {
         console.log(gutil.colors.green('waiting for build...'))
     }, 1000)
@@ -125,6 +126,7 @@ gulp.task('build', function() {
     var zipinterval = setInterval(function() {
         console.log('********release********** : waiting for release zip...')
     }, 3000)
+
     var ziptimeout = setTimeout(function() {
         gulp.src(['./build/html/**/**'])
             .pipe(zip('html.zip'))

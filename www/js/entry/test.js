@@ -99,7 +99,7 @@ export function generateTreeByData(dataArray) {
 			let node = ''
 			let isChecked = isAllSelected(data) == true ? 'checked' : ''
 			if (data.sub != undefined) {
-				node = '<div class="node collapse">'
+				node = '<div class="node"><div  class="collapse icon-toggle"></div>'
 			}
 			let index = 'title' + data.id
 			let name = data.name
@@ -180,12 +180,13 @@ function triggerChecked() {
 			selectParent($this, !isChecked)
 		}
 	})
-	$(".tree-ct").on('click', '.node', function(event) {
+	$(".tree-ct").on('click', '.icon-toggle', function(event) {
 		var $this = $(this)
 		var isChecked = $this.hasClass('collapse') || $this.hasClass('expand')
 		if (isChecked) {
 			$this.toggleClass('collapse')
 			$this.toggleClass('expand')
+			$($this.closest('.node').find('.sub')[0]).toggleClass('toggle-hide')
 		}
 	})
 }

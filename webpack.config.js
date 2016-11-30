@@ -6,6 +6,7 @@ process.env.NODE_ENV ='development'
 process.env.HOT = true
 
 module.exports = {
+    devtool: "source-map",  
     entry:entry,
     output: {
         path: path.join(__dirname, 'dist'), 
