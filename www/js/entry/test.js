@@ -42,9 +42,24 @@ var data = {
 			name: '基本信息143543512',
 		}]
 	}, {
+		id: 12234223413131,
+		name: '基本信息',
+		sub: [{
+			id: 44322132132311,
+			name: '基本信息11',
+			isSelected: true
+		}, {
+			id: 1234231314242342,
+			name: '基本信息143543512',
+			isSelected: true
+		}]
+	}, {
 		id: 12234242431,
 		name: '基本信息',
 		sub: [{
+			id: 145351,
+			name: '基本信息11',
+		}, {
 			id: 4223311,
 			name: '基本信息324211',
 			sub: [{
@@ -66,7 +81,7 @@ var data = {
 			}, {
 				id: 123422342344223,
 				name: '基本信息1334353534',
-				isSelected: true
+				isSelected: false
 			}]
 		}]
 	}]
@@ -74,18 +89,29 @@ var data = {
 
 
 // 初始化选择结果
+// 0：未选择 1：选择了部分 2：全部选中
 export function isAllSelected(data) {
-	var isSelected = true
+	var isSelected = 0
 	if (data.sub != undefined) {
 		let sub = data.sub
+		var checkedCount = 0
 		for (let length = sub.length, i = 0; i < length; i++) {
-			if (isAllSelected(sub[i]) == false) {
-				isSelected = false
-				break;
+			var subIsSelected = isAllSelected(sub[i]) 
+			if (subIsSelected == 2 || subIsSelected == 1) {
+				checkedCount++
 			}
 		}
-	} else if (data.isSelected != true && data.sub == undefined) {
-		isSelected = false
+		if(checkedCount==0){
+			isSelected = 0
+		}else if(checkedCount<sub.length){
+			isSelected = 1
+		}else{
+			isSelected = 2
+		}
+	} else if (data.isSelected != true ) {
+		isSelected = 0
+	} else if (data.isSelected == true ) {
+		isSelected = 2
 	}
 	return isSelected
 }
@@ -97,7 +123,8 @@ export function generateTreeByData(dataArray) {
 		let data = dataArray[i]
 		if (typeof data == "object") {
 			let node = ''
-			let isChecked = isAllSelected(data) == true ? 'checked' : ''
+			let checkedFlag = isAllSelected(data)
+			let isChecked = checkedFlag == 0 ?'': checkedFlag==1?'checked-one' : 'checked'
 			if (data.sub != undefined) {
 				node = '<div class="node"><div  class="collapse icon-toggle"></div>'
 			}
@@ -123,6 +150,7 @@ export function generateTreeByData(dataArray) {
 function selectItem($target, isChecked) {
 	if (isChecked) {
 		$target.addClass('checked')
+		$target.removeClass('checked-one')
 	} else {
 		$target.removeClass('checked')
 	}
@@ -137,6 +165,7 @@ function selectItem($target, isChecked) {
 // 设置父节点选择状态
 function selectParent($target, isChecked) {
 	var isCheckedParent = true
+	var checkedCount = 0
 	var $sub = $target.closest('.sub')
 	if ($sub.length == 0) {
 		return
@@ -149,6 +178,8 @@ function selectParent($target, isChecked) {
 	$titles.each(function(index, item) {
 		if ($(item).hasClass('checked') == false) {
 			isCheckedParent = false
+		}else{
+			checkedCount++
 		}
 	})
 	isCheckedParent = isCheckedParent && isChecked
@@ -159,8 +190,15 @@ function selectParent($target, isChecked) {
 	let $title = $($nodeParent.find('.title')[0])
 	if (isCheckedParent) {
 		$title.addClass('checked')
+		$title.removeClass('checked-one')
 	} else {
-		$title.removeClass('checked')
+		if(checkedCount>0){
+			$title.removeClass('checked')
+			$title.addClass('checked-one')
+		}else{
+			$title.removeClass('checked')
+			$title.removeClass('checked-one')
+		}
 	}
 	if ($title && $title.closest('.sub')) {
 		selectParent($title, isCheckedParent)

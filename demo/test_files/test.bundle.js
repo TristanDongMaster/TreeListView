@@ -3,13 +3,13 @@ webpackJsonp([0,1],[
 /***/ function(module, exports) {
 
 	'use strict';
-
+	
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
-
+	
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
+	
 	exports.isAllSelected = isAllSelected;
 	exports.generateTreeByData = generateTreeByData;
 	var data = {
@@ -56,9 +56,24 @@ webpackJsonp([0,1],[
 				name: '基本信息143543512'
 			}]
 		}, {
+			id: 12234223413131,
+			name: '基本信息',
+			sub: [{
+				id: 44322132132311,
+				name: '基本信息11',
+				isSelected: true
+			}, {
+				id: 1234231314242342,
+				name: '基本信息143543512',
+				isSelected: true
+			}]
+		}, {
 			id: 12234242431,
 			name: '基本信息',
 			sub: [{
+				id: 145351,
+				name: '基本信息11'
+			}, {
 				id: 4223311,
 				name: '基本信息324211',
 				sub: [{
@@ -80,29 +95,40 @@ webpackJsonp([0,1],[
 				}, {
 					id: 123422342344223,
 					name: '基本信息1334353534',
-					isSelected: true
+					isSelected: false
 				}]
 			}]
 		}]
 	};
-
+	
 	// 初始化选择结果
+	// 0：未选择 1：选择了部分 2：全部选中
 	function isAllSelected(data) {
-		var isSelected = true;
+		var isSelected = 0;
 		if (data.sub != undefined) {
 			var sub = data.sub;
+			var checkedCount = 0;
 			for (var length = sub.length, i = 0; i < length; i++) {
-				if (isAllSelected(sub[i]) == false) {
-					isSelected = false;
-					break;
+				var subIsSelected = isAllSelected(sub[i]);
+				if (subIsSelected == 2 || subIsSelected == 1) {
+					checkedCount++;
 				}
 			}
-		} else if (data.isSelected != true && data.sub == undefined) {
-			isSelected = false;
+			if (checkedCount == 0) {
+				isSelected = 0;
+			} else if (checkedCount < sub.length) {
+				isSelected = 1;
+			} else {
+				isSelected = 2;
+			}
+		} else if (data.isSelected != true) {
+			isSelected = 0;
+		} else if (data.isSelected == true) {
+			isSelected = 2;
 		}
 		return isSelected;
 	}
-
+	
 	// 生成tree view DOM
 	function generateTreeByData(dataArray) {
 		var str = '';
@@ -110,9 +136,10 @@ webpackJsonp([0,1],[
 			var _data = dataArray[i];
 			if ((typeof _data === 'undefined' ? 'undefined' : _typeof(_data)) == "object") {
 				var node = '';
-				var isChecked = isAllSelected(_data) == true ? 'checked' : '';
+				var checkedFlag = isAllSelected(_data);
+				var isChecked = checkedFlag == 0 ? '' : checkedFlag == 1 ? 'checked-one' : 'checked';
 				if (_data.sub != undefined) {
-					node = '<div class="node collapse">';
+					node = '<div class="node"><div  class="collapse icon-toggle"></div>';
 				}
 				var index = 'title' + _data.id;
 				var name = _data.name;
@@ -131,11 +158,12 @@ webpackJsonp([0,1],[
 		}
 		return str;
 	}
-
+	
 	// 设置子节点选择状态
 	function selectItem($target, isChecked) {
 		if (isChecked) {
 			$target.addClass('checked');
+			$target.removeClass('checked-one');
 		} else {
 			$target.removeClass('checked');
 		}
@@ -150,6 +178,7 @@ webpackJsonp([0,1],[
 	// 设置父节点选择状态
 	function selectParent($target, isChecked) {
 		var isCheckedParent = true;
+		var checkedCount = 0;
 		var $sub = $target.closest('.sub');
 		if ($sub.length == 0) {
 			return;
@@ -162,6 +191,8 @@ webpackJsonp([0,1],[
 		$titles.each(function (index, item) {
 			if ($(item).hasClass('checked') == false) {
 				isCheckedParent = false;
+			} else {
+				checkedCount++;
 			}
 		});
 		isCheckedParent = isCheckedParent && isChecked;
@@ -172,14 +203,21 @@ webpackJsonp([0,1],[
 		var $title = $($nodeParent.find('.title')[0]);
 		if (isCheckedParent) {
 			$title.addClass('checked');
+			$title.removeClass('checked-one');
 		} else {
-			$title.removeClass('checked');
+			if (checkedCount > 0) {
+				$title.removeClass('checked');
+				$title.addClass('checked-one');
+			} else {
+				$title.removeClass('checked');
+				$title.removeClass('checked-one');
+			}
 		}
 		if ($title && $title.closest('.sub')) {
 			selectParent($title, isCheckedParent);
 		}
 	}
-
+	
 	// 选择，伸展事件
 	function triggerChecked() {
 		$(".tree-ct").on('click', '.title', function (event) {
@@ -193,16 +231,17 @@ webpackJsonp([0,1],[
 				selectParent($this, !isChecked);
 			}
 		});
-		$(".tree-ct").on('click', '.node', function (event) {
+		$(".tree-ct").on('click', '.icon-toggle', function (event) {
 			var $this = $(this);
 			var isChecked = $this.hasClass('collapse') || $this.hasClass('expand');
 			if (isChecked) {
 				$this.toggleClass('collapse');
 				$this.toggleClass('expand');
+				$($this.closest('.node').find('.sub')[0]).toggleClass('toggle-hide');
 			}
 		});
 	}
-
+	
 	Zepto(function ($) {
 		var str = generateTreeByData(data.parent);
 		$(".tree-ct").append(str);
@@ -211,3 +250,4 @@ webpackJsonp([0,1],[
 
 /***/ }
 ]);
+//# sourceMappingURL=test.bundle.js.map
